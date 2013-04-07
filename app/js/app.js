@@ -1,14 +1,19 @@
 define(
     [
-            
+        'gapi'
     ],
-    function(  ){
+    function( ApiManager ){
         "use strict";
-        
-        var App = function(){};
+
+
+        var App = function(){
+            this.connectGapi();
+        };
 
         App.prototype = {
-
+            connectGapi: function(){
+                this.apiManager = new ApiManager;
+            }
         };
 
         return App;
