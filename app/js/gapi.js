@@ -74,7 +74,7 @@ define(
         // public API
         function ApiManager( _app ) {
 //            app = _app;
-            this.requireGapi( this.init.bind( this ) );
+            this.requireGapi( _.bind( this.init, this ) );
         };
 
         _.extend( ApiManager.prototype, Backbone.Events, {

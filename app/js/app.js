@@ -4,10 +4,11 @@ define(
 
         'views/app',
         'views/auth',
+        'views/lists/menu',
 
         'collections/taskLists'
     ],
-    function( ApiManager, AppView, AuthView, TaskLists ){
+    function( ApiManager, AppView, AuthView, MenuView, TaskLists ){
         "use strict";
 
 
@@ -20,6 +21,8 @@ define(
             this.views.auth.render();
 
             this.collections.lists = new TaskLists();
+
+            this.views.listMenu = new MenuView({ collection: this.collections.lists });
 
             this.connectGapi();
 
@@ -40,6 +43,7 @@ define(
                     this.collections.lists.fetch({
                         data: { userId: '@me' },
                         success: function( result ){
+                            console.log( this );
                             console.log( 'tasklist results:', result.models );
                             _.each( result.models, function( model ){
                                 console.log( model.get( 'title' ) );
