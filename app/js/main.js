@@ -1,24 +1,35 @@
 
 requirejs.config({
 
-    baseUrl: 'js',
+    baseUrl: '/js',
 
     paths: {
+
+        lib: 'lib',
+
+        // requirejs template loader
+        text: 'lib/text',
+        // template router
+        tpl: 'templates',
+
+        // libraries
+        underscore: 'lib/underscore',
+        backbone: 'lib/backbone'
     },
 
     shim: {
 
-        'lib/underscore': {
+        underscore: {
             exports: '_'
         },
 
-        'lib/backbone': {
+        backbone: {
             exports: 'Backbone',
-            deps: [ 'lib/underscore' ]
+            deps: [ 'underscore' ]
         },
 
-        'app': {
-            deps: [ 'lib/underscore', 'lib/backbone' ]
+        app: {
+            deps: [ 'underscore', 'backbone' ]
         }
 
     }
@@ -26,9 +37,14 @@ requirejs.config({
 
 
 require(
-    [ 'app' ],
-    function( App ){
+    [ 'app', 'underscore' ],
+    function( App, _ ){
         "use strict";
+
+        // set underscore template interpolation
+        _.templateSettings = {
+            interpolate: /\{\{(.+?)\}\}/g
+        };
 
         window.bTask = new App();
     }
