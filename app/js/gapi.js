@@ -11,7 +11,7 @@ define(
 
 
         // private API
-        var gauth = {
+        var gauth = _.extend( Backbone.Events, {
 
             checkAuth: function( isImmediate ){
                 window.gapi.auth.authorize(
@@ -27,7 +27,7 @@ define(
             handleGapiLoad: function( fn ){
                 // check that that googleapis has loaded properly
                 if ( window.gapi && window.gapi.client ) {
-                    fn();
+                    fn && fn();
                 }
                 else {
                     setTimeout( function(){
@@ -55,6 +55,7 @@ define(
                     //app.views.auth.$el.hide();
                     console.log( 'auth logged in' );
                     $('#signed-in-container').show();
+                    gauth.trigger( 'ready' );
                 }
                 else {
                     // login failed display sign-in button
@@ -67,13 +68,13 @@ define(
                     //app.views.auth.$el.show();
                 }
             }
-        };
+        });
 
 
         // public API
         function ApiManager( _app ) {
 //            app = _app;
-            this.requireGapi();
+            this.requireGapi( this.init.bind( this ) );
         };
 
         _.extend( ApiManager.prototype, Backbone.Events, {
@@ -86,6 +87,11 @@ define(
                     console.log( 'google.tasks loaded' );
                 });
 
+                gauth.on( 'ready', function(){
+                    // do stuff
+                    this.trigger( 'ready' );
+                }, this );
+
                 setTimeout( function(){
                     gauth.checkAuth( true );
                 }, 1 );
@@ -96,16 +102,14 @@ define(
                 gauth.checkAuth( isImmediate );
             },
 
-            requireGapi: function () {
-                var self = this;
-
+            requireGapi: function ( fn ) {
                 if ( typeof window.gapi !== 'undefined' ) {
-                    return this.init();
+                    return fn && fn();
                 }
 
                 // load the google api asynchronously
                 require( ['https://apis.google.com/js/client.js?onload=define'], function(){
-                    gauth.handleGapiLoad( self.init );
+                    gauth.handleGapiLoad( fn );
                 });
             }
 
@@ -126,8 +130,21 @@ define(
                     break;
 
                 case 'read':
+                    var request = window.gapi.client.tasks[ model.url ].list( options.data );
+                    Backbone.gapiRequest( request, method, model, options );
                     break;
             }
+        };
+
+        Backbone.gapiRequest = function( request, method, model, options ){
+            request.execute(function( res ){
+                if( res.errorr ) {
+                    options.error && options.error( res );
+                }
+                else {
+                    options.success && options.success( res.items, true, request );
+                }
+            });
         };
 
         return ApiManager;

@@ -3,9 +3,11 @@ define(
         'gapi',
 
         'views/app',
-        'views/auth'
+        'views/auth',
+
+        'collections/taskLists'
     ],
-    function( ApiManager, AppView, AuthView ){
+    function( ApiManager, AppView, AuthView, TaskLists ){
         "use strict";
 
 
@@ -17,6 +19,8 @@ define(
             this.views.auth = new AuthView( this );
             this.views.auth.render();
 
+            this.collections.lists = new TaskLists();
+
             this.connectGapi();
 
         };
@@ -25,8 +29,24 @@ define(
 
             views: {},
 
+            collections: {},
+
             connectGapi: function(){
                 this.apiManager = new ApiManager();
+
+                this.apiManager.on( 'ready', function(){
+                    console.log( 'ApiManager:ready' );
+
+                    this.collections.lists.fetch({
+                        data: { userId: '@me' },
+                        success: function( result ){
+                            console.log( 'tasklist results:', result.models );
+                            _.each( result.models, function( model ){
+                                console.log( model.get( 'title' ) );
+                            });
+                        }
+                    });
+                }, this );
             }
 
         };
