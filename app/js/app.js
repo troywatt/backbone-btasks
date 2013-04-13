@@ -14,6 +14,9 @@ define(
 
         var App = function(){
 
+            // create the bTasks => app global
+            window.bTask = this;
+
             this.views.app = new AppView( this );
             this.views.app.render();
 
@@ -35,6 +38,8 @@ define(
             collections: {},
 
             connectGapi: function(){
+                var self = this;
+
                 this.apiManager = new ApiManager();
 
                 this.apiManager.on( 'ready', function(){
@@ -43,11 +48,7 @@ define(
                     this.collections.lists.fetch({
                         data: { userId: '@me' },
                         success: function( result ){
-                            console.log( this );
-                            console.log( 'tasklist results:', result.models );
-                            _.each( result.models, function( model ){
-                                console.log( model.get( 'title' ) );
-                            });
+                            self.views.listMenu.render();
                         }
                     });
                 }, this );

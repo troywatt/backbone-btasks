@@ -1,0 +1,7 @@
+{
+  "volo": {
+    "dependencies": {
+      "twitter-bootstrap-rails": "github:seyhunak/twitter-bootstrap-rails/v2.1.0"
+    }
+  }
+}

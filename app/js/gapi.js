@@ -117,20 +117,44 @@ define(
 
 
         Backbone.sync = function ( method, model, options ) {
+            var requestContent = {}, request;
             options || (options = {});
+
+            // A slight complication is Google’s API requires a tasklist property in the object
+            // passed to update. This isn’t very clearly documented (you’ll notice the tasklists/update
+            // reference doesn’t have a JavaScript example).
+            // https://developers.google.com/google-apps/tasks/v1/reference/tasklists/update
+            switch( model.url ) {
+                case 'tasks':
+                    requestContent.task = model.get( 'id' );
+                    break;
+
+                case 'tasklists':
+                    requestContent.tasklist = model.get( 'id' );
+                    break;
+            }
 
             switch ( method ) {
                 case 'create':
+                    requestContent[ 'resource' ] = model.toJSON();
+                    request = window.gapi.client.tasks[ model.url ].insert( requestContent );
+                    Backbone.gapiRequest( request, method, model, options );
                     break;
 
                 case 'update':
+                    requestContent[ 'resource' ] = model.toJSON();
+                    request = window.gapi.client.tasks[ model.url ].update( requestContent );
+                    Backbone.gapiRequest( request, method, model, options );
                     break;
 
                 case 'delete':
+                    requestContent[ 'resource' ] = model.toJSON();
+                    request = window.gapi.client.tasks[ model.url ].delete( requestContent );
+                    Backbone.gapiRequest( request, method, model, options );
                     break;
 
                 case 'read':
-                    var request = window.gapi.client.tasks[ model.url ].list( options.data );
+                    request = window.gapi.client.tasks[ model.url ].list( options.data );
                     Backbone.gapiRequest( request, method, model, options );
                     break;
             }
@@ -142,7 +166,9 @@ define(
                     options.error && options.error( res );
                 }
                 else {
-                    options.success && options.success( res.items, true, request );
+                    // check if an array of items has been returned, or simply a single object
+                    var result = res.items || res;
+                    options.success && options.success( result, true, request );
                 }
             });
         };

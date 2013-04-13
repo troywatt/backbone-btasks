@@ -18,20 +18,39 @@ define(
             },
 
             initialize: function(){
-                this.collection.on( 'add', this.render, this );
+                // FIXME: causes issue on app.initialize because it's getting called once for every item in list
+//                this.listenTo( this.collection, 'add', this.render, this );
+            },
+
+            renderMenuItem: function( model, el ){
+                var item = new MenuItemView({ model: model } ),
+                    // render to context if provide (documentFragment) or default to the view el
+                    el = el || this.el[ 0 ];
+
+                el.appendChild( item.render().el );
+
+                // activate first item in list if no item is active yet
+                if( !window.bTask.views.activeListMenuItem ) {
+                    window.bTask.views.activeListMenuItem = item;
+                }
+
+                // check if the activeModel is the model currently being used to render the navigation list element:
+                if( model.get( 'id' ) === window.bTask.views.activeListMenuItem.model.get( 'id' ) ) {
+                    item.open();
+                }
             },
 
             render: function(){
+                console.log( 'render' );
                 var $el = $( this.el ),
-                    listFrgament = document.createDocumentFragment(),
+                    listFragment = document.createDocumentFragment(),
                     self = this;
 
                 this.collection.each(function( list ){
-                    var item = new MenuItemView({ model: list });
-                    listFrgament.appendChild( item.render().el );
+                    self.renderMenuItem( list, listFragment );
                 });
 
-                $el.append( listFrgament );
+                $el.html( listFragment );
                 return this;
             }
         });
